@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: '2019-09-09'
+Description: Creates Fargate Cluster
+
+Parameters:
+  Application:
+    Description: Application Name for which ECS Cluster is being created
+    Type: String
+    Default: TheBitByteBox
+  Environment:
+    Description: Which environment the VPC is created for.
+    Type: String
+    Default: Development
+    ConstraintDescription: Environment can be [Development, QA, Production]
+    AllowedValues:
+      - Development
+      - QA
+      - Production
+  VPC:
+    Description: The VPC on which resources should be deployed.
+    Type: AWS::EC2::VPC::Id
+
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${Environment}-${Application}-fargate
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  ClusterName:
+    Description: ECS Cluster Name
+    Value: !Ref ECSCluster

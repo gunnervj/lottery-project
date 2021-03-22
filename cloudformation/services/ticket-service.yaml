@@ -1,0 +1,153 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Ticket Microservice Fargate Service
+
+Parameters:
+  ServiceName:
+    Type: String
+    Default: ticket-service
+    Description: Name of the Service
+
+  Application:
+    Description: Application Name for which ECS Cluster is being created
+    Type: String
+    Default: TheBitByteBox
+
+  Environment:
+    Description: Which environment the VPC is created for.
+    Type: String
+    Default: Development
+    ConstraintDescription: Environment can be [Development, QA, Production]
+    AllowedValues:
+      - Development
+      - QA
+      - Production
+
+  ContainerCPU:
+    Type: Number
+    Default: 256
+    Description: How much cpu to be given to the container (1024 - 1 CPU)
+
+  ContainerMemory:
+    Type: Number
+    Default: 512
+    Description: How much memory in megabytes to be given to the container
+
+  Image:
+    Type: String
+    Default: vnair5/ticket-service
+    Description: Docker image name
+
+  DesiredCount:
+    Type: Number
+    Default: 2
+    Description: Desired number of tasks to be run
+
+  Subnets:
+    Description: "Subnets to which the load balancer should be deployed"
+    Type: List<AWS::EC2::Subnet::Id>
+
+Resources:
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join [ '', [ !Ref ServiceName, '-task-role'] ]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref ServiceName
+      Cpu: !Ref ContainerCPU
+      Memory: !Ref ContainerMemory
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue: !Sub ${Environment}:${Application}:ECSTaskExecutionRole
+      TaskRoleArn: !Ref TaskRole
+      ContainerDefinitions:
+        - Name: !Ref ServiceName
+          Image: !Ref Image
+          PortMappings:
+            - ContainerPort: 80
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 8
+      HealthCheckPath: /actuator
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Fn::ImportValue:
+          !Sub ${Environment}:${Application}:VPC
+      TargetType: ip
+      Name: !Join ['', [!Ref ServiceName, '-tg'] ]
+      Port: 80
+      Protocol: HTTP
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+  MyALBRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - 'ticketing/'
+      ListenerArn:
+        Fn::ImportValue:
+          !Sub ${Environment}:${Application}:MyALBHttpListener
+      Priority: 1
+
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Ref ServiceName
+      Cluster: !Sub ${Environment}-${Application}-fargate
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 50
+      DesiredCount: !Ref DesiredCount
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::ImportValue: !Sub ${Environment}:${Application}:ContainerSecurityGroup
+          Subnets: !Ref Subnets
+      TaskDefinition: !Ref TaskDefinition
+      LoadBalancers:
+        - ContainerName: !Ref ServiceName
+          ContainerPort: 80
+          TargetGroupArn: !Ref TargetGroup
+
+
+
+
+
+
+

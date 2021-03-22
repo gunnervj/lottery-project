@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates Roles Necessary for ECS Fargate
+
+Parameters:
+  Application:
+    Description: Application Name for which ECS Cluster is being created
+    Type: String
+    Default: TheBitByteBox
+  Environment:
+    Description: Which environment the VPC is created for.
+    Type: String
+    Default: Development
+    ConstraintDescription: Environment can be [Development, QA, Production]
+    AllowedValues:
+      - Development
+      - QA
+      - Production
+
+Resources:
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["", [!Ref Application, 'ExecutionRole'] ]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+  ECSAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ["", [ !Ref Application, 'AutoScaleRole']]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  ECSTaskExecutionRole:
+    Description: ECS role that is required inorder to pull images from ECR and also for cloudwatch logs.
+    Value: !Ref ECSTaskExecutionRole
+    Export:
+      Name: !Sub ${Environment}:${Application}:ECSTaskExecutionRole
+
+  ECSAutoScalingRole:
+    Description: ECS role for autoscaling
+    Value: !Ref ECSAutoScalingRole
+    Export:
+      Name: !Sub ${Environment}:${Application}:ECSAutoScalingRole

@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Ticket ECS Microservies Infrastructure setup
+
+Parameters:
+
+  Application:
+    Description: Application Name for which ECS Cluster is being created
+    Type: String
+    Default: lottery-project
+
+  Environment:
+    Description: Which environment the VPC is created for.
+    Type: String
+    Default: Development
+    ConstraintDescription: Environment can be [Development, QA, Production]
+    AllowedValues:
+      - Development
+      - QA
+      - Production
+
+  Region:
+    Description: "Region where VPC needs to be created"
+    Type: String
+    Default: ap-south-1
+    AllowedValues:
+      - ap-south-1
+      - us-east-1
+
+Resources:
+  VPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://lottery-cfn-bucket.s3.ap-south-1.amazonaws.com/Infrastructure/vpc.yaml
+      Parameters:
+        Application: !Ref Application
+        Environment: !Ref Environment
+        Region: !Ref Region
+
+  SecurityGroups:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://lottery-cfn-bucket.s3.ap-south-1.amazonaws.com/Infrastructure/security-groups.yaml
+      Parameters:
+        Application: !Ref Application
+        Environment: !Ref Environment
+        VPC: !GetAtt VPC.Outputs.VPC
+
+  ECSRoles:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://lottery-cfn-bucket.s3.ap-south-1.amazonaws.com/Infrastructure/ecs-roles.yaml
+      Parameters:
+        Application: !Ref Application
+        Environment: !Ref Environment
+
+  LoadBalancer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://lottery-cfn-bucket.s3.ap-south-1.amazonaws.com/Infrastructure/loadbalancer.yaml
+      Parameters:
+        Application: !Ref Application
+        Environment: !Ref Environment
+        VPC: !GetAtt VPC.Outputs.VPC
+        Subnets: !GetAtt VPC.Outputs.PublicSubnets
+        ALBSecurityGroup: !GetAtt SecurityGroups.Outputs.LoadBalancerSecurityGroup
+
+  ECSCluster:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://lottery-cfn-bucket.s3.ap-south-1.amazonaws.com/Infrastructure/ecs-cluster.yaml
+      Parameters:
+        Application: !Ref Application
+        Environment: !Ref Environment

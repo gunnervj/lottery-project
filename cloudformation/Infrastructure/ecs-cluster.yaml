@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2019-09-09'
+AWSTemplateFormatVersion: '2010-09-09'
 Description: Creates Fargate Cluster
 
 Parameters:
@@ -15,9 +15,6 @@ Parameters:
       - Development
       - QA
       - Production
-  VPC:
-    Description: The VPC on which resources should be deployed.
-    Type: AWS::EC2::VPC::Id
 
 Resources:
   ECSCluster:
@@ -34,3 +31,5 @@ Outputs:
   ClusterName:
     Description: ECS Cluster Name
     Value: !Ref ECSCluster
+    Export:
+      Name: !Sub ${Environment}-${Application}-ECSCluster

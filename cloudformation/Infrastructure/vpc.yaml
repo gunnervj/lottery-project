@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2019-09-09'
+AWSTemplateFormatVersion: '2010-09-09'
 Description: Creates VPC and Subnets for ECS
 Parameters:
   Application:
@@ -43,7 +43,7 @@ Resources:
     Properties:
       EnableDnsSupport: true
       EnableDnsHostnames: true
-      CidrBlock: !FindMap [ SubnetConfiguration, VPC, CIDR ]
+      CidrBlock: !FindInMap [ SubnetConfiguration, VPC, CIDR ]
       Tags:
         - Key: Application
           Value: !Ref Application
@@ -54,12 +54,10 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailableZOne: !Join
+      AvailabilityZone: !Join
         - ""
         - - !Ref Region
-          - Fn::Sub:
-              - "${AZ}"
-              - AZ: !Select [ 0, !FindInMap[ AZRegions, !Ref Region, AZs ] ]
+          - !Select [ 0, !FindInMap [ AZRegions, !Ref Region, AZs ] ]
       CidrBlock: !FindInMap [ SubnetConfiguration, Public1, CIDR ]
       MapPublicIpOnLaunch: true
       Tags:
@@ -72,13 +70,11 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailableZOne: !Join
+      AvailabilityZone: !Join
         - ""
         - - !Ref Region
-          - Fn::Sub:
-              - "${AZ}"
-              - AZ: !Select [ 1, !FindInMap[ AZRegions, !Ref Region, AZs ] ]
-      CidrBlock: !FindInMap [ SubnetConfiguration, "Public2, "CIDR ]
+          - !Select [ 1, !FindInMap [ AZRegions, !Ref Region, AZs ] ]
+      CidrBlock: !FindInMap [ SubnetConfiguration, Public2, CIDR ]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Application
@@ -113,16 +109,11 @@ Resources:
 
   PublicRoute:
     Type: AWS::EC2::Route
-    DependsOn: GatewayAttachement
+    DependsOn: MyInternetGatewayVPCAttachment
     Properties:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref MyInternetGateway
-      Tags:
-        - Key: Application
-          Value: !Ref Application
-        - Key: Environment
-          Value: !Ref Environment
 
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -140,6 +131,8 @@ Outputs:
   VPC:
     Description: VPC
     Value: !Ref VPC
+    Export:
+      Name: !Sub ${Environment}:${Application}:VPC
 
   PublicSubnet1:
     Description: Public Subnet 1

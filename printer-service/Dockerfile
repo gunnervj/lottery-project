@@ -9,6 +9,7 @@ COPY gradlew.bat .
 COPY settings.gradle .
 COPY src src
 
+RUN chmod +x ./gradlew
 RUN ./gradlew build -x test
 
 FROM openjdk:8-jdk-alpine

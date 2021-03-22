@@ -1,14 +1,16 @@
-AWSTemplateFormatVersion: '2019-09-09'
+AWSTemplateFormatVersion: '2010-09-09'
 Description: Creates Necessary Security Groups.
 
 Parameters:
   VPC:
     Description: The VPC on which resources should be deployed.
     Type: AWS::EC2::VPC::Id
+
   Application:
     Description: Application Name for which ECS Cluster is being created
     Type: String
     Default: TheBitByteBox
+
   Environment:
     Description: Which environment the VPC is created for.
     Type: String
@@ -18,19 +20,21 @@ Parameters:
       - Development
       - QA
       - Production
-  LoadBalancerPort:
-    Type: Number
-    Default: 80
-
 
 Resources:
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      GroupDescription: Loadbalancer security group for ingress rule from internet.
+      VpcId: !Ref VPC
       SecurityGroupIngress:
           - IpProtocol: tcp
-            FromPort: !Ref LoadBalancerPort
-            ToPort: !Ref LoadBalancerPort
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
             CidrIp: 0.0.0.0/0
       Tags:
         - Key: Application
@@ -54,4 +58,9 @@ Outputs:
     Description: Security Group for the ECS Container
     Value: !Ref ContainerSecurityGroup
     Export:
-      Name: !Sub ${EnvironmentName}:ContainerSecurityGroup
+      Name: !Sub ${Environment}:${Application}:ContainerSecurityGroup
+  LoadBalancerSecurityGroup:
+    Description: Security Group for the LoadBalancer.
+    Value: !Ref LoadBalancerSecurityGroup
+    Export:
+      Name: !Sub ${Environment}:${Application}:LoadBalancerSecurityGroup

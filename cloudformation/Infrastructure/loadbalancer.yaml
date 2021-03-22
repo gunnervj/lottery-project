@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates an Application Loadbalancer to recieve requests.
+
+Parameters:
+  Application:
+    Description: Application Name for which ECS Cluster is being created
+    Type: String
+    Default: TheBitByteBox
+
+  Environment:
+    Description: Which environment the VPC is created for.
+    Type: String
+    Default: Development
+    ConstraintDescription: Environment can be [Development, QA, Production]
+    AllowedValues:
+      - Development
+      - QA
+      - Production
+
+  Subnets:
+    Description: "Subnets to which the load balancer should be deployed"
+    Type: List<AWS::EC2::Subnet::Id>
+
+  VPC:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC to which we deploy the load balancer"
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: ALB Security Group
+
+Resources:
+  MyALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Join ['', [!Ref Application, '-alb' ] ]
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets: !Ref Subnets
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+  MyALBHttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MyALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Join ['', [!GetAtt 'MyALB.LoadBalancerName', '-def-tg'] ]
+      Protocol: HTTP
+      Port: 80
+      HealthCheckIntervalSeconds: 8
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      UnhealthyThresholdCount: 2
+      TargetType: ip
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  MyALB:
+    Description: My application load balancer.
+    Value: !Ref MyALB
+
+  MyALBHttpListener:
+    Description: My ALB http Listerner
+    Value: !Ref MyALBHttpListener
+    Export:
+      Name: !Sub ${Environment}:${Application}:MyALBHttpListener
+
+

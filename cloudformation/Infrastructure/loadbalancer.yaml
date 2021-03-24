@@ -60,11 +60,11 @@ Resources:
       Name: !Join ['', [!GetAtt 'MyALB.LoadBalancerName', '-def-tg'] ]
       Protocol: HTTP
       Port: 80
-      HealthCheckIntervalSeconds: 8
+      HealthCheckIntervalSeconds: 30
       HealthCheckPath: /
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
-      UnhealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
       TargetType: ip
       VpcId: !Ref VPC
       Tags:

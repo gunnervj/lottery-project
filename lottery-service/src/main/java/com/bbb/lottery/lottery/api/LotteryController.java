@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("bbb-lotto/api/v1/lottery")
+@RequestMapping("/api/v1/lottery")
 public class LotteryController implements LotteryAPI {
     private LotteryService lotteryService;
 

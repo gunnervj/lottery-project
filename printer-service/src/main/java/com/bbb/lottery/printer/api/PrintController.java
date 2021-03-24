@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("printer/api/v1")
+@RequestMapping("/api/v1")
 public class PrintController implements PrinterApi {
     private final PrinterService printerService;
 

@@ -75,13 +75,13 @@ AWS XRay daemon runs as a side car container with each service. Services are ins
 
 Each container also sends application logs to AWS CloudWatch logs via ``awslogs`` driver.
 
-Alt-H4  XRAY
+####  XRAY
 
 ![XrayMap](images/xray.png)
 <br/><br/><br/>
 ![XrayServiceInfo](images/xray-svc.png)
 
-Alt-H4 CloudWatch
+#### CloudWatch
 
 ![CW-map](images/cloudwatch-servicemap.png)
 <br/><br/><br/>

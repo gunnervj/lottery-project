@@ -51,6 +51,11 @@ Parameters:
     Description: Subnets to which the services should be deployed
     Type: List<AWS::EC2::Subnet::Id>
 
+  S3BucketName:
+    Type: String
+    Default: bbbox-lottery-bucket
+    Description: This is the bucket to which we will store the ticke
+
 Resources:
   TaskRole:
     Type: AWS::IAM::Role
@@ -86,6 +91,11 @@ Resources:
       ContainerDefinitions:
         - Name: !Ref ServiceName
           Image: !Join [":", [ !Ref Image, !Ref ImageVersion] ]
+          Environment:
+            - Name: lottery.AWS_BUCKET_NAME
+              Value: !Ref S3BucketName
+            - Name: lottery.LOTTERY_TEMPLATE_S3_BUCKET
+              Value: !Ref S3BucketName
           PortMappings:
             - ContainerPort: 80
           LogConfiguration:

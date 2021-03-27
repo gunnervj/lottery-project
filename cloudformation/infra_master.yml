@@ -26,6 +26,8 @@ Parameters:
       - ap-south-1
       - us-east-1
 
+
+
 Resources:
   VPC:
     Type: AWS::CloudFormation::Stack

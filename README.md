@@ -75,7 +75,7 @@ This micro service takes in a lottery ticket number and lottery ticket id as inp
 HTTP POST http://<internal-service-discovery-host>/printer/api/v1/print
 ``
 
-The service then takes a ticket blueprint from S3 and then imprints a QR code generate from lottery-id in the ticket blueprint. It then prints the ticket number in the blueprint and finally upload the image to a S3 bucket. Before responsding back, the service generates a s3 signed url that is valid for 15 minutes and sends the url in the response.
+The service then uses a ticket blueprint from S3 and imprints a QR code generated from lottery-id. It then prints the ticket number in the blueprint and finally upload the final ticket image to a S3 bucket. Before responding back, the service generates a s3 signed url that is valid for 15 minutes and sends the url in the response.
 
 ![ticket](images/lottery-ticket.png)
 
@@ -137,7 +137,7 @@ I have created separate template for each service for simplicity of demo project
     - Create 1 S3 bucket with any name.
     - Create a folder under the bucket with name as ``template``.
     - Upload the ``ticket_template.png`` under the printer-service to the folder ``template`` folder in the bucket.
-
+      ![ticket](images/s3-bucket.png)
 2. Setting up core infrastructure
     - Upload the cloudformtion templates into S3 bucket.
     - Update the Template URLs based on the bucket you created in ```infra_master.yml``` and ```services_master.yml```. We could parameterize this in future.
@@ -176,4 +176,4 @@ This should respond back a json with url to download the image
 4. Use AppMesh for discovery services and more.
 5. UI to generate a lottery request.
 6. Move ECS cluster to a private subnet.
-7. Add autoscaling based on metrics.
+7. Add auto-scaling based on metrics.

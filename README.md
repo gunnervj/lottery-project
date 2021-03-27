@@ -3,7 +3,17 @@
 
 ## Introduction
 
-This Project is created to demonstrate running spring boot micro services in AWS Fargate - Totally Serverless
+In this modern world using serverless applications helps us not worry about provisioning servers, 
+maintaining them, making them highly available, scaling according to load etc. We only need to worry about hardening 
+and fixing security holes in our application but not servers running them (We still need to secure our other 
+infrastructure).
+
+Spring boot packaged in a docker container forms a powerful combination to develop and run microservices with agility.
+
+AWS Fargate helps us run our docker containers in a serverless fashion without provisioning EC2 servers to run docker
+or ECS clusters.
+
+This Project is created to demonstrate running spring boot micro-services in AWS Fargate - Totally Serverless
 
 It uses following technologies:
 
@@ -166,3 +176,4 @@ This should respond back a json with url to download the image
 4. Use AppMesh for discovery services and more.
 5. UI to generate a lottery request.
 6. Move ECS cluster to a private subnet.
+7. Add autoscaling based on metrics.

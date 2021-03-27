@@ -1,5 +1,6 @@
 package com.bbb.lottery.lottery.dao;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import com.bbb.lottery.lottery.LotteryMessage;
 import com.bbb.lottery.lottery.exceptions.LotteryUnknownException;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Repository
 @Slf4j
+@XRayEnabled
 public class LotteryDaoImpl implements LotteryDao {
     private final DynamoDbClient dynamoDbClient;
     private static final String TABLE_NAME = "bbb_lottery";

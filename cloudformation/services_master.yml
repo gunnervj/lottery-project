@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Ticket ECS Microservies Services setup
+
+Parameters:
+  Application:
+    Description: Application Name for which ECS Cluster is being created
+    Type: String
+    Default: lottery-project
+
+  Environment:
+    Description: Which environment the stack is created for.
+    Type: String
+    Default: dev
+    ConstraintDescription: Environment can be [dev, qa, prod]
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+
+  Region:
+    Description: "Region where VPC needs to be created"
+    Type: String
+    Default: ap-south-1
+    AllowedValues:
+      - ap-south-1
+      - us-east-1
+
+Resources:
+  TicketService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://lottery-cfn-bucket.s3.ap-south-1.amazonaws.com/services/ticket-service.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ServiceName: ticket-service
+        Subnets:
+          Fn::ImportValue: !Sub ${Environment}:${Application}:subnets
+
+  PrinterService:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://lottery-cfn-bucket.s3.ap-south-1.amazonaws.com/services/printer-service.yaml
+      Parameters:
+        Environment: !Ref Environment
+        ServiceName: printer-service
+        Subnets:
+          Fn::ImportValue: !Sub ${Environment}:${Application}:subnets
+
+  LotteryService:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - PrinterService
+      - TicketService
+    Properties:
+      TemplateURL: https://lottery-cfn-bucket.s3.ap-south-1.amazonaws.com/services/lottery-service.yaml
+      Parameters:
+        Environment: !Ref Environment
+        Subnets:
+          Fn::ImportValue: !Sub ${Environment}:${Application}:subnets
+        PrinterServiceName: printer-service
+        TicketServiceName: ticket-service

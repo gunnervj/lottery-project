@@ -1,5 +1,7 @@
 package com.bbb.lottery.printer.service;
 
+import com.amazonaws.xray.AWSXRay;
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import com.bbb.lottery.printer.LotteryMessage;
 import com.bbb.lottery.printer.api.beans.PrintRequest;
 import com.bbb.lottery.printer.api.beans.PrintResponse;
@@ -29,6 +31,7 @@ import java.io.File;
 
 @Service
 @Slf4j
+@XRayEnabled
 public class PrinterServiceImpl implements PrinterService {
     private final QRService qrService;
     private final File templateFile;
@@ -64,11 +67,13 @@ public class PrinterServiceImpl implements PrinterService {
 
     @PostConstruct
     private void postInit() {
+        AWSXRay.beginSegment("printer-service-init");
         File templateFile = new File(OUTPUT_PREFIX +  TEMPLATE_FILE_NAME);
         if (!templateFile.exists()) {
             log.info("lottery template do not exist, fetching from s3 : " + LOTTERY_TEMPLATE_S3_PATH);
             readTicketTemplateFromS3Bucket(templateFile);
         }
+        AWSXRay.endSegment();
     }
 
     private void readTicketTemplateFromS3Bucket(File templateFile) {

@@ -1,5 +1,6 @@
 package com.bbb.ticket.service;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import com.bbb.ticket.api.bean.TicketResponse;
 import com.bbb.ticket.exceptions.TicketingUnknownException;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@XRayEnabled
 public class TicketingServiceImpl implements  TicketingService {
     private final Random randomDigitGenerator;
 

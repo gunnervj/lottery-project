@@ -4,16 +4,18 @@ Parameters:
   Application:
     Description: Application Name for which VPC is being created
     Type: String
-    Default: TheBitByteBox
+    Default: lottery-project
+
   Environment:
     Description: Which environment the VPC is created for.
     Type: String
-    Default: Development
-    ConstraintDescription: Environment can be [Development, QA, Production]
+    Default: dev
+    ConstraintDescription: Environment can be [dev, qa, prod]
     AllowedValues:
-      - Development
-      - QA
-      - Production
+      - dev
+      - qa
+      - prod
+
   Region:
     Description: "Region where VPC needs to be created"
     Type: String
@@ -148,3 +150,5 @@ Outputs:
       - ","
       - - !Ref PublicSubnet1
         - !Ref PublicSubnet2
+    Export:
+      Name: !Sub ${Environment}:${Application}:subnets

@@ -9,14 +9,14 @@ Parameters:
     Default: lottery-project
 
   Environment:
-    Description: Which environment the VPC is created for.
+    Description: Which environment the stack is created for.
     Type: String
-    Default: Development
-    ConstraintDescription: Environment can be [Development, QA, Production]
+    Default: dev
+    ConstraintDescription: Environment can be [dev, qa, prod]
     AllowedValues:
-      - Development
-      - QA
-      - Production
+      - dev
+      - qa
+      - prod
 
   Region:
     Description: "Region where VPC needs to be created"
@@ -71,3 +71,4 @@ Resources:
       Parameters:
         Application: !Ref Application
         Environment: !Ref Environment
+        VPC: !GetAtt VPC.Outputs.VPC

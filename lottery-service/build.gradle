@@ -25,11 +25,16 @@ ext {
 dependencies {
 	implementation platform('software.amazon.awssdk:bom:2.15.0')
 	implementation 'software.amazon.awssdk:dynamodb'
-
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.apache.commons:commons-lang3:3.0'
+	implementation 'com.amazonaws:aws-xray-recorder-sdk-apache-http:2.8.0'
+	implementation 'io.github.openfeign:feign-httpclient:11.1'
+	implementation 'com.amazonaws:aws-xray-recorder-sdk-aws-sdk-v2:2.7.1'
 
+	compile 'com.amazonaws:aws-xray-recorder-sdk-aws-sdk-v2-instrumentor:2.7.1'
+	compile 'com.amazonaws:aws-xray-recorder-sdk-spring:2.7.1'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'

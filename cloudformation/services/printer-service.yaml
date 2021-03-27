@@ -4,7 +4,7 @@ Description: Ticket Microservice Fargate Service
 Parameters:
   ServiceName:
     Type: String
-    Default: ticket-service
+    Default: printer-service
     Description: Name of the Service
 
   Application:
@@ -34,13 +34,13 @@ Parameters:
 
   Image:
     Type: String
-    Default: vnair5/ticket-service
+    Default: vnair5/printer-service
     Description: Docker image name
 
   ImageVersion:
     Type: String
     Default: latest
-    Description: Docker image name
+    Description: Docker image version
 
   DesiredCount:
     Type: Number
@@ -48,7 +48,7 @@ Parameters:
     Description: Desired number of tasks to be run
 
   Subnets:
-    Description: "Subnets to which the load balancer should be deployed"
+    Description: Subnets to which the services should be deployed
     Type: List<AWS::EC2::Subnet::Id>
 
 Resources:
@@ -64,6 +64,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
       Tags:
         - Key: Application
           Value: !Ref Application
@@ -79,7 +80,6 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-
       ExecutionRoleArn:
         Fn::ImportValue: !Sub ${Environment}:${Application}:ECSTaskExecutionRole
       TaskRoleArn: !Ref TaskRole
@@ -148,6 +148,8 @@ Resources:
       Name: !Ref ServiceName
       NamespaceId:
         Fn::ImportValue: !Sub ${Environment}-${Application}-LotteryNamespace
+
+
 
 Outputs:
   ServiceName:

@@ -5,16 +5,25 @@ Parameters:
   Application:
     Description: Application Name for which ECS Cluster is being created
     Type: String
-    Default: TheBitByteBox
+    Default: lottery-project
+
   Environment:
-    Description: Which environment the VPC is created for.
+    Description: Which environment the Cluster is created for.
     Type: String
-    Default: Development
-    ConstraintDescription: Environment can be [Development, QA, Production]
+    Default: dev
+    ConstraintDescription: Environment can be [dev, qa, prod]
     AllowedValues:
-      - Development
-      - QA
-      - Production
+      - dev
+      - qa
+      - prod
+  VPC:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC for fargate cluser
+
+  Domain:
+    Type: String
+    Default: bbb-lotto.local
+    Description: Service Discovery name
 
 Resources:
   ECSCluster:
@@ -27,9 +36,36 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  CloudWatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: 'lottery-project'
+      RetentionInDays: 90
+
+  LotteryNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: !Join [".", [ !Ref Environment, !Ref Domain ] ]
+      Vpc: !Ref VPC
+
 Outputs:
   ClusterName:
     Description: ECS Cluster Name
     Value: !Ref ECSCluster
     Export:
       Name: !Sub ${Environment}-${Application}-ECSCluster
+
+  CloudwatchLogsGroup:
+    Description: Cloudwatch logs group.
+    Value: !Ref CloudWatchLogsGroup
+
+  LotteryNameSpace:
+    Description: Service Discovery Namespace
+    Value: !Ref LotteryNamespace
+    Export:
+      Name: !Sub ${Environment}-${Application}-LotteryNamespace
+
+  LocalDomain:
+    Value: !Join [".", [ !Ref Environment, !Ref Domain ] ]
+    Export:
+      Name: !Sub ${Environment}-localdomain

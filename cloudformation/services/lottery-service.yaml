@@ -4,7 +4,7 @@ Description: Ticket Microservice Fargate Service
 Parameters:
   ServiceName:
     Type: String
-    Default: ticket-service
+    Default: lottery-service
     Description: Name of the Service
 
   Application:
@@ -34,7 +34,7 @@ Parameters:
 
   Image:
     Type: String
-    Default: vnair5/ticket-service
+    Default: vnair5/lottery-service
     Description: Docker image name
 
   ImageVersion:
@@ -51,7 +51,36 @@ Parameters:
     Description: "Subnets to which the load balancer should be deployed"
     Type: List<AWS::EC2::Subnet::Id>
 
+  PrinterServiceName:
+    Type: String
+    Default: printer-service
+    Description: Service Name for Printer Microservice
+
+  TicketServiceName:
+    Type: String
+    Default: ticket-service
+    Description: Service Name for Ticket Microservice
+
 Resources:
+
+  DynamoDB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: bbb_lottery
+      AttributeDefinitions:
+        - AttributeName: date
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -64,6 +93,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
       Tags:
         - Key: Application
           Value: !Ref Application
@@ -79,13 +109,17 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-
       ExecutionRoleArn:
         Fn::ImportValue: !Sub ${Environment}:${Application}:ECSTaskExecutionRole
       TaskRoleArn: !Ref TaskRole
       ContainerDefinitions:
         - Name: !Ref ServiceName
           Image: !Join [":", [ !Ref Image, !Ref ImageVersion] ]
+          Environment:
+            - Name: servicePrinterHost
+              Value: !Join ["", [ 'http://', !Join [".", [!Ref PrinterServiceName, Fn::ImportValue: !Sub '${Environment}-localdomain' ] ] ] ]
+            - Name: serviceTicketHost
+              Value: !Join ["", [ 'http://', !Join [".", [!Ref TicketServiceName, Fn::ImportValue: !Sub '${Environment}-localdomain' ] ] ] ]
           PortMappings:
             - ContainerPort: 80
           LogConfiguration:
@@ -113,6 +147,43 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /bbb-lotto/actuator/health
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Fn::ImportValue:
+          !Sub ${Environment}:${Application}:VPC
+      TargetType: ip
+      Name: !Join ['', [!Ref ServiceName, '-tg'] ]
+      Port: 80
+      Protocol: HTTP
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+  MyALBRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - '/bbb-lotto/*'
+      ListenerArn:
+        Fn::ImportValue:
+          !Sub ${Environment}:${Application}:MyALBHttpListener
+      Priority: 1
+
   Service:
     Type: AWS::ECS::Service
     Properties:
@@ -130,28 +201,15 @@ Resources:
             - Fn::ImportValue: !Sub ${Environment}:${Application}:ContainerSecurityGroup
           Subnets: !Ref Subnets
       TaskDefinition: !Ref TaskDefinition
-      ServiceRegistries:
-        - RegistryArn: !GetAtt ServiceDiscovery.Arn
-          Port: 80
 
-  ServiceDiscovery:
-    Type: AWS::ServiceDiscovery::Service
-    Properties:
-      Description: Discovery Service for the ticket-service
-      DnsConfig:
-        RoutingPolicy: WEIGHTED
-        DnsRecords:
-          - TTL: 60
-            Type: A
-          - TTL: 60
-            Type: SRV
-      Name: !Ref ServiceName
-      NamespaceId:
-        Fn::ImportValue: !Sub ${Environment}-${Application}-LotteryNamespace
+      LoadBalancers:
+        - ContainerName: !Ref ServiceName
+          ContainerPort: 80
+          TargetGroupArn: !Ref TargetGroup
 
-Outputs:
-  ServiceName:
-    Value: !Ref ServiceName
+
+
+
 
 
 

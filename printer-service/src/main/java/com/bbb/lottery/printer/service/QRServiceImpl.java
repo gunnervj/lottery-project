@@ -1,5 +1,6 @@
 package com.bbb.lottery.printer.service;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import com.bbb.lottery.printer.LotteryMessage;
 import com.bbb.lottery.printer.exceptions.PrinterUnknownException;
 import com.google.zxing.BarcodeFormat;
@@ -17,6 +18,7 @@ import java.io.File;
 
 @Slf4j
 @Service
+@XRayEnabled
 public class QRServiceImpl implements QRService {
     @Value("${qrcode.height:255}")
     private int qrCodeHeight;

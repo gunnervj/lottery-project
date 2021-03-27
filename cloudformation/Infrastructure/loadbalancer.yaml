@@ -3,19 +3,19 @@ Description: Creates an Application Loadbalancer to recieve requests.
 
 Parameters:
   Application:
-    Description: Application Name for which ECS Cluster is being created
+    Description: Application Name for which loadbalancer is being created
     Type: String
-    Default: TheBitByteBox
+    Default: lottery-project
 
   Environment:
-    Description: Which environment the VPC is created for.
+    Description: Which environment the loadbalancer is created for.
     Type: String
-    Default: Development
-    ConstraintDescription: Environment can be [Development, QA, Production]
+    Default: dev
+    ConstraintDescription: Environment can be [dev, qa, prod]
     AllowedValues:
-      - Development
-      - QA
-      - Production
+      - dev
+      - qa
+      - prod
 
   Subnets:
     Description: "Subnets to which the load balancer should be deployed"

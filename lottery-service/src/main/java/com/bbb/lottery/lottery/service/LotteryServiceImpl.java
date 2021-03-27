@@ -1,5 +1,6 @@
 package com.bbb.lottery.lottery.service;
 
+import com.amazonaws.xray.spring.aop.XRayEnabled;
 import com.bbb.lottery.lottery.LotteryMessage;
 import com.bbb.lottery.lottery.api.beans.LotteryTicket;
 import com.bbb.lottery.lottery.dao.LotteryDao;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@XRayEnabled
 public class LotteryServiceImpl implements LotteryService {
 
     private final TicketServiceClient ticketServiceClient;

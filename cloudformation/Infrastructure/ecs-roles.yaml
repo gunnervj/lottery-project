@@ -3,18 +3,19 @@ Description: Creates Roles Necessary for ECS Fargate
 
 Parameters:
   Application:
-    Description: Application Name for which ECS Cluster is being created
+    Description: Application Name for which IAM roles are being created
     Type: String
-    Default: TheBitByteBox
+    Default: lottery-project
+
   Environment:
-    Description: Which environment the VPC is created for.
+    Description: Which environment the ecs roles are created for.
     Type: String
-    Default: Development
-    ConstraintDescription: Environment can be [Development, QA, Production]
+    Default: dev
+    ConstraintDescription: Environment can be [dev, qa, prod]
     AllowedValues:
-      - Development
-      - QA
-      - Production
+      - dev
+      - qa
+      - prod
 
 Resources:
   ECSTaskExecutionRole:

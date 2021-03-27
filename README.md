@@ -67,6 +67,7 @@ HTTP POST http://<internal-service-discovery-host>/printer/api/v1/print
 
 The service then takes a ticket blueprint from S3 and then imprints a QR code generate from lottery-id in the ticket blueprint. It then prints the ticket number in the blueprint and finally upload the image to a S3 bucket. Before responsding back, the service generates a s3 signed url that is valid for 15 minutes and sends the url in the response.
 
+![ticket](images/lottery-ticket.png)
 
 ## Service Monitoring
 
@@ -74,7 +75,17 @@ AWS XRay daemon runs as a side car container with each service. Services are ins
 
 Each container also sends application logs to AWS CloudWatch logs via ``awslogs`` driver.
 
+Alt-H4  XRAY
 
+![XrayMap](images/xray.png)
+<br/><br/><br/>
+![XrayServiceInfo](images/xray-svc.png)
+
+Alt-H4 CloudWatch
+
+![CW-map](images/cloudwatch-servicemap.png)
+<br/><br/><br/>
+![CW-logs](images/cloudwatch-logs.png)
 
 ## Service Discovery
 
@@ -82,6 +93,9 @@ Lottery-Service registers itself to a target group to which traffic is routed fr
 
 Read more on [AWS Page](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-discovery.html)
 
+#### Route 53
+
+![Route-53](images/route53.png)
 
 ## Cloudformation - Infrastructure As Code
 
@@ -139,26 +153,9 @@ This should respond back a json with url to download the image
 
 ## Screenshots
 
-#### AWS XRay Service Map
-
-![XrayMap](images/xray.png)
-<br/><br/><br/>
-![XrayServiceInfo](images/xray-svc.png)
-
 #### ECS Cluster & Tasks
 
 ![Cluster](images/cluster-tasks.png)
-
-#### CloudWatch map & logs
-
-![CW-map](images/cloudwatch-servicemap.png)
-<br/><br/><br/>
-![CW-logs](images/cloudwatch-logs.png)
-
-
-#### Route 53
-
-![Route-53](images/route53.png)
 
 
 ## Improvements

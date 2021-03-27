@@ -164,4 +164,5 @@ This should respond back a json with url to download the image
 2. S3 bucket creation automation for template and to store generated images
 3. one template for services by parameterizing hardcoded values
 4. Use AppMesh for discovery services and more.
-5. UI to generate lottery.
+5. UI to generate a lottery request.
+6. Move ECS cluster to a private subnet.
